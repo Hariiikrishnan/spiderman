@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>3D Spider-Man Swing</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+    <style>
+        body { margin: 0; overflow: hidden; background-color: #0a0a2a; }
+        canvas { display: block; }
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+        button {
+            padding: 10px 20px;
+            font-size: 18px;
+            margin: 5px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="controls">
+        <button onclick="sayHi()">Swing Left</button>
+        <button onclick="swingRight()">Swing Right</button>
+    </div>
+
+    <script>
+        let scene, camera, renderer, spiderman, screenBounds;
+        let leftHand,leftShoulder, leftArm, leftForeArm;
+        let leftThumb1,leftThumb2,leftThumb3,leftThumb4,leftThumb5,leftThumbEnd1,leftThumbEnd2;
+        let leftHandIndex1,leftHandIndex2,leftHandIndex3,leftHandIndex4;
+        let leftHandMiddle1,leftHandMiddle2,leftHandMiddle3,leftHandMiddle4;
+        let leftHandRing1,leftHandRing2,leftHandRing3,leftHandRing4;
+        let leftHandPinky1,leftHandPinky2,leftHandPinky3,leftHandPinky4;
+
+
+
+        let rightHand,rightShoulder, rightArm, rightForeArm;
+        let rightThumb1,rightThumb2,rightThumb3,rightThumb4,rightThumb5,rightThumbEnd1,rightThumbEnd2;
+        let rightHandIndex1,rightHandIndex2,rightHandIndex3,rightHandIndex4;
+        let rightHandMiddle1,rightHandMiddle2,rightHandMiddle3,rightHandMiddle4;
+        let rightHandRing1,rightHandRing2,rightHandRing3,rightHandRing4;
+        let rightHandPinky1,rightHandPinky2,rightHandPinky3,rightHandPinky4;
+
+        let leftLeg,leftThigh,leftFoot,leftToe;
+        let rightLeg,rightThigh,rightFoot,rightToe;
+        let hips,head;
+
+        function init() {
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xfffff); // Dark Blue Background
+
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.z = 5;
+
+            renderer = new THREE.WebGLRenderer({ antialias: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            document.body.appendChild(renderer.domElement);
+
+            // Lighting Adjustments for Better Visibility
+            const light = new THREE.DirectionalLight(0xffffff, 1.5);
+            light.position.set(3, 3, 5);
+            scene.add(light);
+
+            const ambientLight = new THREE.AmbientLight(0xaaaaaa, 1.5);
+            scene.add(ambientLight);
+
+            const spotLight = new THREE.SpotLight(0xffffff, 2);
+            spotLight.position.set(0, 5, 3);
+            spotLight.angle = Math.PI / 4;
+            scene.add(spotLight);
+
+            // Load Spider-Man Model
+            const loader = new THREE.GLTFLoader();
+            loader.load("models/spiderman_rigged.glb", function (gltf) {
+                spiderman = gltf.scene;
+                // console.log(spiderman);
+                console.log(gltf.scene.children);
+                // gltf.scene.traverse((obj) => console.log(obj.name));
+
+
+                leftLeg   = gltf.scene.getObjectByName("mixamorigLeftUpLeg_89_0132");
+                leftThigh   = gltf.scene.getObjectByName("mixamorigLeftLeg_88_0133");
+                leftFoot   = gltf.scene.getObjectByName("mixamorigLeftFoot_87_00");
+                leftToe   = gltf.scene.getObjectByName("mixamorigLeftToeBase_86_0134");
+                
+                rightLeg   = gltf.scene.getObjectByName("mixamorigRightUpLeg_94_0138");
+                rightThigh   = gltf.scene.getObjectByName("mixamorigRightLeg_93_0139");
+                rightFoot   = gltf.scene.getObjectByName("mixamorigRightFoot_92_0140");
+                rightToe   = gltf.scene.getObjectByName("mixamorigRightToeBase_91_0141");
+                
+                hips   = gltf.scene.getObjectByName("mixamorigSpine_84_06");
+                head   = gltf.scene.getObjectByName("mixamorigHead_2_010");
+              
+
+                 leftHand = gltf.scene.getObjectByName("mixamorigLeftHand_39_017");
+                 leftShoulder = gltf.scene.getObjectByName("mixamorigLeftShoulder_42_014");
+                 leftArm = gltf.scene.getObjectByName("mixamorigLeftArm_41_015");
+                 leftForeArm = gltf.scene.getObjectByName("mixamorigLeftForeArm_40_016");
+                 
+
+
+                 leftThumb1 = gltf.scene.getObjectByName("mixamorigLeftHandThumb1_7_018");
+                 leftThumb2 = gltf.scene.getObjectByName("mixamorigLeftHandThumb2_6_019");
+                 leftThumb3 = gltf.scene.getObjectByName("mixamorigLeftHandThumb3_5_020");
+                 leftThumb4 = gltf.scene.getObjectByName("mixamorigLeftHandThumb4_4_021");
+                 leftThumb5 = gltf.scene.getObjectByName("mixamorigLeftHandThumb1_7_018");
+                
+                 leftThumbEnd1 = gltf.scene.getObjectByName("mixamorigLeftHandThumb4_4_end_end_023");
+                 leftThumbEnd2 = gltf.scene.getObjectByName("mixamorigLeftHandThumb4_4_end_end_end_0277");
+
+
+                 leftHandIndex1 = gltf.scene.getObjectByName("mixamorigLeftHandIndex1_11_024");
+                 leftHandIndex2 = gltf.scene.getObjectByName("mixamorigLeftHandIndex2_10_025");
+                 leftHandIndex3 = gltf.scene.getObjectByName("mixamorigLeftHandIndex3_9_026");
+                 leftHandIndex4 = gltf.scene.getObjectByName("mixamorigLeftHandIndex4_8_027");
+                 //  leftHandIndex3 = gltf.scene.getObjectByName("mixamorigLeftHandIndex4_8_end_028");
+
+
+                 leftHandMiddle1 = gltf.scene.getObjectByName("mixamorigLeftHandMiddle1_15_030");
+                 leftHandMiddle2 = gltf.scene.getObjectByName("mixamorigLeftHandMiddle2_14_031");
+                 leftHandMiddle3 = gltf.scene.getObjectByName("mixamorigLeftHandMiddle3_13_032");
+                 leftHandMiddle4 = gltf.scene.getObjectByName("mixamorigLeftHandMiddle4_12_033");
+
+                 leftHandRing1 = gltf.scene.getObjectByName("mixamorigLeftHandRing1_19_036");
+                 leftHandRing2 = gltf.scene.getObjectByName("mixamorigLeftHandRing2_18_037");
+                 leftHandRing3 = gltf.scene.getObjectByName("mixamorigLeftHandRing3_17_038");
+                 leftHandRing4 = gltf.scene.getObjectByName("mixamorigLeftHandRing4_16_039");
+               
+               
+                 leftHandPinky1 = gltf.scene.getObjectByName("mixamorigLeftHandPinky1_23_042");
+                 leftHandPinky2 = gltf.scene.getObjectByName("mixamorigLeftHandPinky2_22_043");
+                 leftHandPinky3 = gltf.scene.getObjectByName("mixamorigLeftHandPinky3_21_044");
+                 leftHandPinky4 = gltf.scene.getObjectByName("mixamorigLeftHandPinky4_20_045");
+              
+              
+              
+                 rightThumb1 = gltf.scene.getObjectByName("mixamorigRightHandThumb1_46_077");
+                 rightThumb2 = gltf.scene.getObjectByName("mixamorigRightHandThumb2_45_078");
+                 rightThumb3 = gltf.scene.getObjectByName("mixamorigRightHandThumb3_44_079");
+                 rightThumb4 = gltf.scene.getObjectByName("mixamorigRightHandThumb4_43_080");
+                 rightThumb5 = gltf.scene.getObjectByName("mixamorigRightHandThumb4_43_end_081");
+                
+                //  leftThumbEnd1 = gltf.scene.getObjectByName("mixamorigLeftHandThumb4_4_end_end_023");
+                //  leftThumbEnd2 = gltf.scene.getObjectByName("mixamorigLeftHandThumb4_4_end_end_end_0277");
+
+
+                 rightHandIndex1 = gltf.scene.getObjectByName("mixamorigRightHandIndex1_50_083");
+                 rightHandIndex2 = gltf.scene.getObjectByName("mixamorigRightHandIndex2_49_084");
+                 rightHandIndex3 = gltf.scene.getObjectByName("mixamorigRightHandIndex3_48_085");
+                 rightHandIndex4 = gltf.scene.getObjectByName("mixamorigRightHandIndex4_47_086");
+                 //  leftHandIndex3 = gltf.scene.getObjectByName("mixamorigLeftHandIndex4_8_end_028");
+
+
+                 rightHandMiddle1 = gltf.scene.getObjectByName("mixamorigRightHandMiddle1_54_089");
+                 rightHandMiddle2 = gltf.scene.getObjectByName("mixamorigRightHandMiddle2_53_090");
+                 rightHandMiddle3 = gltf.scene.getObjectByName("mixamorigRightHandMiddle3_52_091");
+                 rightHandMiddle4 = gltf.scene.getObjectByName("mixamorigRightHandMiddle4_51_092");
+
+                 rightHandRing1 = gltf.scene.getObjectByName("mixamorigRightHandRing1_58_095");
+                 rightHandRing2 = gltf.scene.getObjectByName("mixamorigRightHandRing2_57_096");
+                 rightHandRing3 = gltf.scene.getObjectByName("mixamorigRightHandRing3_56_097");
+                 rightHandRing4 = gltf.scene.getObjectByName("mixamorigRightHandRing4_55_098");
+               
+               
+                 rightHandPinky1 = gltf.scene.getObjectByName("mixamorigRightHandPinky1_62_0101");
+                 rightHandPinky2 = gltf.scene.getObjectByName("mixamorigRightHandPinky2_61_0102");
+                 rightHandPinky3 = gltf.scene.getObjectByName("mixamorigRightHandPinky3_60_0103");
+                 rightHandPinky4 = gltf.scene.getObjectByName("mixamorigRightHandPinky4_59_0104");
+
+
+
+                 rightHand = gltf.scene.getObjectByName("mixamorigRightHand_78_076");
+                 rightShoulder = gltf.scene.getObjectByName("mixamorigRightShoulder_81_073");
+                 rightArm = gltf.scene.getObjectByName("mixamorigRightArm_80_074");
+                 rightForeArm = gltf.scene.getObjectByName("mixamorigRightForeArm_79_075");
+
+
+                // Hanging Start
+                spiderman.rotation.y = 3.2;
+                spiderman.rotation.x = 3;
+                spiderman.rotation.z =0;
+
+    
+
+
+                //  Default Position of Left Leg
+                // _x:-3.1233822032241223
+                // _y: 0.0010692014458022665
+                // _z: -3.0833532723358203
+                
+                
+                leftLeg.rotation.x = Math.PI / 2;
+                leftLeg.rotation.z = 3.7;
+                leftThigh.rotation.x = - Math.PI / 1.3;
+                leftFoot.rotation.x = 0.05;
+                leftFoot.rotation.y = 0.05;
+
+                rightLeg.rotation.x = Math.PI / 2;
+                rightLeg.rotation.z = -3.7;
+                rightThigh.rotation.x = - Math.PI / 1.3;
+                rightFoot.rotation.x = 0.05;
+                rightFoot.rotation.y = 0.05;
+                
+                
+                             
+
+
+
+                spiderman.position.set(0, 5, 0); // Start high
+                // spiderman.position.set(0, -1, 0); // Start high
+                // spiderman.position.set(0, 1, 0); // Start high
+                scene.add(spiderman);
+
+                // Swing down animation
+                gsap.to(spiderman.position, {x:0, y: 1, duration: 2, ease: "ease.in" });
+
+                updateScreenBounds();
+                // swingRight();
+                changeHand();
+                // sayHi();
+                // webShootPose();
+            });
+            window.addEventListener("resize", onWindowResize);
+            updateScreenBounds();
+            animate();
+        }
+
+        function swingRight(){
+
+            
+            //     leftLeg.rotation.x = Math.PI / 2;
+            //     leftLeg.rotation.z = 3.7;
+            //     leftThigh.rotation.x = - Math.PI / 1.3;
+            //     leftFoot.rotation.x = 0.05;
+            //     leftFoot.rotation.y = 0.05;
+
+            //     rightLeg.rotation.x = Math.PI / 2;
+            //     rightLeg.rotation.z = -3.7;
+            //     rightThigh.rotation.x = - Math.PI / 1.3;
+            //     rightFoot.rotation.x = 0.05;
+            //     rightFoot.rotation.y = 0.05;
+
+
+              if(spiderman) gsap.to(spiderman.rotation, { x:0,y:0,z:0.6,duration: 1, ease: "power2.out" });
+            //   if(spiderman) gsap.to(spiderman.position, { z:0.6,duration: 1, ease: "power2.out" });
+            
+            //   if(hips) gsap.to(hips.rotation, {  duration: 1, ease: "power2.out" });
+             
+            // Default Head
+            // x: 7.739761542779904e-8
+            // y: 4.951878196379771e-8
+            // z: -1.2721141131893127e-15
+
+
+            if(head) gsap.to(head.rotation, { y:- Math.PI / 3, x: Math.PI / 12 ,z:6.3, duration: 1, ease: "power2.out" });
+                
+            
+              if(leftLeg) gsap.to(leftLeg.rotation, {x:-5.1233822032241223,y:0.0010692014458022665,z:-2.0833532723358203,duration: 1, ease: "power2.out" });
+              if(leftThigh) gsap.to(leftThigh.rotation, {x: -2.3,duration: 1, ease: "power2.out" });
+              if(leftFoot) gsap.to(leftFoot.rotation, {x: 1.5, y: 0, duration: 1, ease: "power2.out" });
+              if(leftToe) gsap.to(leftToe.rotation, {x: 1, y: 0, duration: 1, ease: "power2.out" });
+              
+              
+              // rightLeg.rotation.x = Math.PI / 2;
+              // rightLeg.rotation.z = -3.7;
+              // rightThigh.rotation.x = - Math.PI / 1.3;
+              // rightFoot.rotation.x = 0.05;
+              // rightFoot.rotation.y = 0.05;
+              
+              
+              if(rightLeg) gsap.to(rightLeg.rotation, {x: Math.PI / 1.6, z:-3.2,duration: 1, ease: "power2.out" });
+              if(rightThigh) gsap.to(rightThigh.rotation, {x: - Math.PI / 2,z: 0.2, duration: 1, ease: "power2.out" });
+              if(rightFoot) gsap.to(rightFoot.rotation, {x: 0.9,y: 0.9,z: - 0.3, duration: 1, ease: "power2.out" });
+              if(rightToe) gsap.to(rightToe.rotation, {x: 1, y: 0, duration: 1, ease: "power2.out" });
+              
+              
+              if(leftShoulder) gsap.to(leftShoulder.rotation, {x: Math.PI/2,duration: 1, ease: "power2.out" });
+               if(leftHand) gsap.to(leftHand.rotation, { x:  - Math.PI / 20,y:  Math.PI / 20, duration: 1, ease: "power2.out" });
+              if(leftArm) gsap.to(leftArm.rotation, { x: - Math.PI/ 15, duration: 1, ease: "power2.out" });
+              if(leftForeArm) gsap.to(leftForeArm.rotation, { x: - Math.PI / 20 ,duration: 1, ease: "power2.out" });
+           
+              
+              if(rightShoulder) gsap.to(rightShoulder.rotation, {x: Math.PI / 2 ,y: Math.PI / 12 ,duration: 1, ease: "power2.out" });
+               if(rightHand) gsap.to(rightHand.rotation, { x:   Math.PI / 12,y: - Math.PI / 12,  duration: 1, ease: "power2.out" });
+              if(rightArm) gsap.to(rightArm.rotation, { x:  Math.PI/ 6, duration: 1, ease: "power2.out" });
+              if(rightForeArm) gsap.to(rightForeArm.rotation, { x:  Math.PI / 4 ,duration: 1, ease: "power2.out" });
+           
+              holdRightHand();
+
+            gsap.to(spiderman.position, { x: screenBounds.right ,y:-1, duration: 1, ease: "power2.inOut" });
+            // gsap.to(spiderman.rotation, { x: 0,y:0,z:0, duration: 1, ease: "power2.inOut" });
+                // spiderman.position.x = 0;
+                // spiderman.position.y = -2;
+                // spiderman.position.z = 0;
+        }
+
+        function sayHi(){
+            
+            if (leftThumb1) {
+            gsap.to(leftThumb1.rotation, { x: Math.PI / 4, y: Math.PI / 2.5,duration: 1, ease: "power2.out" }); // Rotate base thumb joint
+            }
+
+            if (leftThumb2) {
+            gsap.to(leftThumb2.rotation, { x: Math.PI / 3,y: Math.PI / 2, duration: 1, ease: "power2.out" }); // Mid thumb bending
+            }
+
+            if (leftThumb3) {
+            gsap.to(leftThumb3.rotation, { x: Math.PI / 2, duration: 1, ease: "power2.out" }); // Lower thumb joint folds more
+            }
+
+            if (leftThumb4) {
+            gsap.to(leftThumb4.rotation, { x: Math.PI / 2, y: Math.PI / 1,duration: 1, ease: "power2.out" }); // Final curve at tip
+            }
+
+            
+            
+            
+            if (leftHandRing1) {
+            gsap.to(leftHandRing1.rotation, { x: Math.PI / 3,duration: 1, ease: "power2.out" }); // Rotate base thumb joint
+            }
+
+            if (leftHandRing2) {
+            gsap.to(leftHandRing2.rotation, { x: Math.PI / 3,y: - Math.PI / 6, duration: 1, ease: "power2.out" }); // Mid thumb bending
+            }
+
+            if (leftHandRing3) {
+            gsap.to(leftHandRing3.rotation, { x: Math.PI / 2, duration: 1, ease: "power2.out" }); // Lower thumb joint folds more
+            }
+
+            if (leftHandRing4) {
+            gsap.to(leftHandRing4.rotation, { x: Math.PI / 2, y:- Math.PI / 10,duration: 1, ease: "power2.out" }); // Final curve at tip
+            }
+
+            if (leftHandPinky1) {
+            gsap.to(leftHandPinky1.rotation, { x: Math.PI / 3,duration: 1, ease: "power2.out" }); // Rotate base thumb joint
+            }
+
+            if (leftHandPinky2) {
+            gsap.to(leftHandPinky2.rotation, { x: Math.PI / 3,y: -Math.PI / 6, duration: 1, ease: "power2.out" }); // Mid thumb bending
+            }
+
+            if (leftHandPinky3) {
+            gsap.to(leftHandPinky3.rotation, { x: Math.PI / 2, duration: 1, ease: "power2.out" }); // Lower thumb joint folds more
+            }
+
+            if (leftHandPinky4) {
+            gsap.to(leftHandPinky4.rotation, { x: Math.PI / 2, y:- Math.PI / 10,duration: 1, ease: "power2.out" }); // Final curve at tip
+            }
+
+            
+            if (leftHandIndex1) {
+            gsap.to(leftHandIndex1.rotation, { x: 0,duration: 1, ease: "power2.out" }); // Rotate base thumb joint
+            }
+
+            if (leftHandIndex2) {
+            gsap.to(leftHandIndex2.rotation, { x: 0, duration: 1, ease: "power2.out" }); // Mid thumb bending
+            }
+
+            if (leftHandIndex3) {
+            gsap.to(leftHandIndex3.rotation, { x: 0, duration: 1, ease: "power2.out" }); // Lower thumb joint folds more
+            }
+
+            if (leftHandIndex4) {
+            gsap.to(leftHandIndex4.rotation, { x: 0, y:- Math.PI / 10,duration: 1, ease: "power2.out" }); // Final curve at tip
+            }
+
+
+
+            if (leftHandMiddle1) {
+            gsap.to(leftHandMiddle1.rotation, { x: 0,duration: 1, ease: "power2.out" }); // Rotate base thumb joint
+            }
+
+            if (leftHandMiddle2) {
+            gsap.to(leftHandMiddle2.rotation, { x: 0, duration: 1, ease: "power2.out" }); // Mid thumb bending
+            }
+
+            if (leftHandMiddle3) {
+            gsap.to(leftHandMiddle3.rotation, { x: 0, duration: 1, ease: "power2.out" }); // Lower thumb joint folds more
+            }
+
+            if (leftHandMiddle4) {
+            gsap.to(leftHandMiddle4.rotation, { x: 0, y:0,duration: 1, ease: "power2.out" }); // Final curve at tip
+            }
+
+
+
+
+            // if(leftShoulder) gsap.to(leftShoulder.rotation, {x: Math.PI / 2.5, duration: 1, ease: "power2.out" });
+            if(leftArm) gsap.to(leftArm.rotation, { x: - Math.PI / 10, duration: 1, ease: "power2.out" });
+            if(leftForeArm) gsap.to(leftForeArm.rotation, { x: Math.PI / 1.6,y: - Math.PI / 2 ,z:0.5 ,duration: 1, ease: "power2.out" });
+            // if(leftHand) gsap.to(leftHand.rotation, { x:  Math.PI / 6,y:  Math.PI / 10, duration: 1, ease: "power2.out" });
+         
+        }
+
+
+        function webShootPose(){
+     
+
+        }
+
+        function changeHand(){
+            // if (leftHand) leftHand.rotation.x += -1; // Move the hand
+            // if (leftShoulder) leftShoulder.rotation.x += 1; // Move the hand
+            // if (leftArm) leftArm.rotation.x += -1; // Move the hand
+            // if (leftForeArm) leftForeArm.rotation.x += 1; // Move the hand
+
+
+
+            // if(leftThumb) gsap.to(leftThumb.rotation, { x:  Math.PI / 7.5 ,y:Math.PI / 2.5, duration: 1, ease: "power2.out" });
+          
+            if (leftThumb1) {
+            gsap.to(leftThumb1.rotation, { x: Math.PI / 50,duration: 1, ease: "power2.out" }); // Rotate base thumb joint
+            }
+
+            if (leftThumb2) {
+            gsap.to(leftThumb2.rotation, { x: Math.PI / 50,y: Math.PI / 2, duration: 1, ease: "power2.out" }); // Mid thumb bending
+            }
+
+            if (leftThumb3) {
+            gsap.to(leftThumb3.rotation, { x: Math.PI / 2, duration: 1, ease: "power2.out" }); // Lower thumb joint folds more
+            }
+
+            if (leftThumb4) {
+            gsap.to(leftThumb4.rotation, { x: Math.PI / 2, y: Math.PI / 1,duration: 1, ease: "power2.out" }); // Final curve at tip
+            }
+
+
+            if (leftHandIndex1) {
+            gsap.to(leftHandIndex1.rotation, { x: Math.PI / 3,duration: 1, ease: "power2.out" }); // Rotate base thumb joint
+            }
+
+            if (leftHandIndex2) {
+            gsap.to(leftHandIndex2.rotation, { x: Math.PI / 3,y: Math.PI / 6, duration: 1, ease: "power2.out" }); // Mid thumb bending
+            }
+
+            if (leftHandIndex3) {
+            gsap.to(leftHandIndex3.rotation, { x: Math.PI / 2, duration: 1, ease: "power2.out" }); // Lower thumb joint folds more
+            }
+
+            if (leftHandIndex4) {
+            gsap.to(leftHandIndex4.rotation, { x: Math.PI / 2, y:- Math.PI / 10,duration: 1, ease: "power2.out" }); // Final curve at tip
+            }
+
+
+
+            if (leftHandMiddle1) {
+            gsap.to(leftHandMiddle1.rotation, { x: Math.PI / 3,duration: 1, ease: "power2.out" }); // Rotate base thumb joint
+            }
+
+            if (leftHandMiddle2) {
+            gsap.to(leftHandMiddle2.rotation, { x: Math.PI / 3,y: Math.PI / 6, duration: 1, ease: "power2.out" }); // Mid thumb bending
+            }
+
+            if (leftHandMiddle3) {
+            gsap.to(leftHandMiddle3.rotation, { x: Math.PI / 2, duration: 1, ease: "power2.out" }); // Lower thumb joint folds more
+            }
+
+            if (leftHandMiddle4) {
+            gsap.to(leftHandMiddle4.rotation, { x: Math.PI / 2, y:- Math.PI / 10,duration: 1, ease: "power2.out" }); // Final curve at tip
+            }
+
+            if (leftHandRing1) {
+            gsap.to(leftHandRing1.rotation, { x: Math.PI / 3,duration: 1, ease: "power2.out" }); // Rotate base thumb joint
+            }
+
+            if (leftHandRing2) {
+            gsap.to(leftHandRing2.rotation, { x: Math.PI / 3,y: Math.PI / 6, duration: 1, ease: "power2.out" }); // Mid thumb bending
+            }
+
+            if (leftHandRing3) {
+            gsap.to(leftHandRing3.rotation, { x: Math.PI / 2, duration: 1, ease: "power2.out" }); // Lower thumb joint folds more
+            }
+
+            if (leftHandRing4) {
+            gsap.to(leftHandRing4.rotation, { x: Math.PI / 2, y:- Math.PI / 10,duration: 1, ease: "power2.out" }); // Final curve at tip
+            }
+
+            if (leftHandPinky1) {
+            gsap.to(leftHandPinky1.rotation, { x: Math.PI / 3,duration: 1, ease: "power2.out" }); // Rotate base thumb joint
+            }
+
+            if (leftHandPinky2) {
+            gsap.to(leftHandPinky2.rotation, { x: Math.PI / 3,y: Math.PI / 6, duration: 1, ease: "power2.out" }); // Mid thumb bending
+            }
+
+            if (leftHandPinky3) {
+            gsap.to(leftHandPinky3.rotation, { x: Math.PI / 2, duration: 1, ease: "power2.out" }); // Lower thumb joint folds more
+            }
+
+            if (leftHandPinky4) {
+            gsap.to(leftHandPinky4.rotation, { x: Math.PI / 2, y:- Math.PI / 10,duration: 1, ease: "power2.out" }); // Final curve at tip
+            }
+
+
+
+            holdRightHand();
+
+// Optional: Slight rotation for the tip-end bones
+// if (leftThumbEnd1) {
+//     gsap.to(leftThumbEnd1.rotation, { x: Math.PI / 5, duration: 1, ease: "power2.out" });
+// }
+
+// if (leftThumbEnd2) {
+//     gsap.to(leftThumbEnd2.rotation, { x: Math.PI / 6, duration: 1, ease: "power2.out" });
+// }
+
+
+            // gsap.to(hips.rotation, { x: Math.PI / 8, duration: 1, ease: "power2.out" });
+            // gsap.to(rightFoot.rotation, { y: Math.PI / 8, duration: 1, ease: "power2.out" });
+            
+
+            // if(leftLeg) gsap.to(leftLeg.rotation, { y: - Math.PI / 3, duration: 1, ease: "power2.out" });
+            // if(leftThigh) gsap.to(leftThigh.rotation, {x: Math.PI / 6 ,y: - Math.PI / 6, duration: 1, ease: "power2.out" });
+     
+            // if(leftLeg) gsap.to(leftLeg.rotation, { y:   Math.PI / 5, duration: 1, ease: "power2.out" });
+            // if(leftThigh) gsap.to(leftThigh.rotation, {y:  Math.PI / 3, x:- Math.PI / 2, duration: 1, ease: "power2.out" });
+        
+            // if(rightLeg) gsap.to(rightLeg.rotation, { y:   Math.PI / 15, duration: 1, ease: "power2.out" });
+            // if(rightThigh) gsap.to(rightThigh.rotation, {y:  Math.PI / 10, x: Math.PI / 2, duration: 1, ease: "power2.out" });
+
+          
+            // if(leftShoulder) gsap.to(leftShoulder.rotation, {x: Math.PI / 2.5, duration: 1, ease: "power2.out" });
+            if(leftArm) gsap.to(leftArm.rotation, { x: Math.PI / 3, duration: 1, ease: "power2.out" });
+            if(leftForeArm) gsap.to(leftForeArm.rotation, { x: Math.PI / 5,  duration: 1, ease: "power2.out" });
+            // if(leftHand) gsap.to(leftHand.rotation, { x:  Math.PI / 6,y:  Math.PI / 10, duration: 1, ease: "power2.out" });
+         
+         
+            // if(rightShoulder) gsap.to(rightShoulder.rotation, {x: Math.PI / 2.4, y:  Math.PI / 6, duration: 1, ease: "power2.out" });
+            if(rightArm) gsap.to(rightArm.rotation, { x: Math.PI / 3, duration: 1, ease: "power2.out" });
+            if(rightForeArm) gsap.to(rightForeArm.rotation, { x: Math.PI / 5, duration: 1, ease: "power2.out" });
+            // if(rightHand) gsap.to(rightHand.rotation, { x: Math.PI / 10,y: - Math.PI / 8, duration: 1, ease: "power2.out" });
+// 
+
+          
+            // if(leftHand) gsap.to(leftHand.rotation, { x: Math.PI / 10,y:  Math.PI / 8, duration: 1, ease: "power2.out" });
+            // if(leftShoulder) gsap.to(leftShoulder.rotation, {x: Math.PI / 2, y:  Math.PI / 20, duration: 1, ease: "power2.out" });
+            // if(leftArm) gsap.to(leftArm.rotation, { x: Math.PI / 5,y: - Math.PI / 30 , duration: 1, ease: "power2.out" });
+            // if(leftForeArm) gsap.to(leftForeArm.rotation, { x: Math.PI / 1.5, y:  Math.PI / 8,duration: 1, ease: "power2.out" });
+         
+         
+            // if(rightHand) gsap.to(rightHand.rotation, { x: Math.PI / 10,y: - Math.PI / 8, duration: 1, ease: "power2.out" });
+            // if(rightShoulder) gsap.to(rightShoulder.rotation, {x: Math.PI / 2.4, y:  Math.PI / 6, duration: 1, ease: "power2.out" });
+            // if(rightArm) gsap.to(rightArm.rotation, { x: Math.PI / 6, y:  Math.PI / 30 , duration: 1, ease: "power2.out" });
+            // if(rightForeArm) gsap.to(rightForeArm.rotation, { x: Math.PI / 2,  y:  Math.PI / 30,duration: 1, ease: "power2.out" });
+
+
+
+        }
+
+
+        function holdRightHand(){
+            
+            if (rightThumb1) {
+            gsap.to(rightThumb1.rotation, { x: Math.PI / 50,duration: 1, ease: "power2.out" }); // Rotate base thumb joint
+            }
+
+            if (rightThumb2) {
+            gsap.to(rightThumb2.rotation, { x: Math.PI / 50,y:- Math.PI / 6 , duration: 1, ease: "power2.out" }); // Mid thumb bending
+            }
+
+            if (rightThumb3) {
+            gsap.to(rightThumb3.rotation, { x: Math.PI / 2,y:  Math.PI / 6, duration: 1, ease: "power2.out" }); // Lower thumb joint folds more
+            }
+
+            if (rightThumb4) {
+            gsap.to(rightThumb4.rotation, { x: Math.PI / 2, y:- Math.PI / 10,duration: 1, ease: "power2.out" }); // Final curve at tip
+            }
+
+
+
+            if (rightHandIndex1) {
+            gsap.to(rightHandIndex1.rotation, { x: Math.PI / 4, duration: 1, ease: "power2.out" }); // Rotate base thumb joint
+            }
+
+            if (rightHandIndex2) {
+            gsap.to(rightHandIndex2.rotation, { x: Math.PI / 3, duration: 1, ease: "power2.out" }); // Mid thumb bending
+            }
+
+            if (rightHandIndex3) {
+            gsap.to(rightHandIndex3.rotation, { x: Math.PI / 2, y:-Math.PI / 6, duration: 1, ease: "power2.out" }); // Lower thumb joint folds more
+            }
+
+            if (rightHandIndex4) {
+            gsap.to(rightHandIndex4.rotation, { x: Math.PI / 2, duration: 1, ease: "power2.out" }); // Final curve at tip
+            }
+
+
+            if (rightHandMiddle1) {
+            gsap.to(rightHandMiddle1.rotation, { x: Math.PI / 4, duration: 1, ease: "power2.out" }); // Rotate base thumb joint
+            }
+
+            if (rightHandMiddle2) {
+            gsap.to(rightHandMiddle2.rotation, { x: Math.PI / 3, duration: 1, ease: "power2.out" }); // Mid thumb bending
+            }
+
+            if (rightHandMiddle3) {
+            gsap.to(rightHandMiddle3.rotation, { x: Math.PI / 2, y:-Math.PI / 6, duration: 1, ease: "power2.out" }); // Lower thumb joint folds more
+            }
+
+            if (rightHandMiddle4) {
+            gsap.to(rightHandMiddle4.rotation, { x: Math.PI / 2, duration: 1, ease: "power2.out" }); // Final curve at tip
+            }
+
+            if (rightHandRing1) {
+            gsap.to(rightHandRing1.rotation, { x: Math.PI / 4, duration: 1, ease: "power2.out" }); // Rotate base thumb joint
+            }
+
+            if (rightHandRing2) {
+            gsap.to(rightHandRing2.rotation, { x: Math.PI / 3, duration: 1, ease: "power2.out" }); // Mid thumb bending
+            }
+
+            if (rightHandRing3) {
+            gsap.to(rightHandRing3.rotation, { x: Math.PI / 2, y:-Math.PI / 6, duration: 1, ease: "power2.out" }); // Lower thumb joint folds more
+            }
+
+            if (rightHandRing4) {
+            gsap.to(rightHandRing4.rotation, { x: Math.PI / 2, duration: 1, ease: "power2.out" }); // Final curve at tip
+            }
+
+            if (rightHandPinky1) {
+            gsap.to(rightHandPinky1.rotation, { x: Math.PI / 4, duration: 1, ease: "power2.out" }); // Rotate base thumb joint
+            }
+
+            if (rightHandPinky2) {
+            gsap.to(rightHandPinky2.rotation, { x: Math.PI / 3, duration: 1, ease: "power2.out" }); // Mid thumb bending
+            }
+
+            if (rightHandPinky3) {
+            gsap.to(rightHandPinky3.rotation, { x: Math.PI / 2, y:-Math.PI / 6, duration: 1, ease: "power2.out" }); // Lower thumb joint folds more
+            }
+
+            if (rightHandPinky4) {
+            gsap.to(rightHandPinky4.rotation, { x: Math.PI / 2, duration: 1, ease: "power2.out" }); // Final curve at tip
+            }
+
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            renderer.render(scene, camera);
+        }
+
+        function updateScreenBounds() {
+            const aspect = window.innerWidth / window.innerHeight;
+            const frustumHeight = 2 * Math.tan((camera.fov * Math.PI) / 360) * camera.position.z;
+            const frustumWidth = frustumHeight * aspect;
+
+            screenBounds = {
+                left: -frustumWidth / 2,
+                right: frustumWidth / 2
+            };
+        }
+
+        function swingLeft() {
+         
+            // if (spiderman) {
+            //     gsap.to(spiderman.position, { x: screenBounds.left + 0.5, duration: 1, ease: "power2.inOut" });
+            // }
+        }
+
+
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            updateScreenBounds();
+        }
+
+        window.onload = init;
+    </script>
+</body>
+</html>
