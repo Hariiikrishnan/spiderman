@@ -60,6 +60,37 @@
             scene.add(spotLight);
 
 
+            
+            const textLoader = new THREE.FontLoader();
+            textLoader.load('fonts/helvetiker_regular.typeface.json', function (font) {
+    const textGeometry = new THREE.TextGeometry('SPIDER MAN', {
+        font: font,
+        size: 0.5, // Increase size
+        height: 0.3, // Increase thickness for depth
+        curveSegments: 12,
+        bevelEnabled: true,
+        bevelThickness: 0.2, // Increase bevel for better visibility
+        bevelSize: 0.05,
+        bevelOffset: 0,
+        bevelSegments: 5
+    });
+
+    // Use a more reflective material
+    const textMaterial = new THREE.MeshStandardMaterial({
+        color: 0xff0000, // Red color
+        metalness: 0.7,  // More reflective
+        roughness: 0.2   // Less rough for a shiny look
+    });
+
+    const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+    textMesh.position.set(-2, -0.5, 1);
+    textMesh.castShadow = true; // Enable shadows for depth
+    textMesh.receiveShadow = true;
+
+    scene.add(textMesh);
+});
+
+
 
 
             // Load Spider-Man Model
@@ -75,8 +106,8 @@
                 console.log(gltf.animations[0]);
 
              
-            
-                spiderman.position.set(0, 0, -5); 
+                
+                spiderman.position.set(0, 0, -4); 
                 scene.add(spiderman);
                 // Setup animation mixer
                 mixer = new THREE.AnimationMixer(spiderman);
@@ -91,6 +122,9 @@
                 updateScreenBounds();
               
             });
+
+
+
             window.addEventListener("resize", onWindowResize);
             updateScreenBounds();
             animate();
