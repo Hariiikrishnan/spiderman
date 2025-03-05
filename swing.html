@@ -33,7 +33,7 @@
 
     <script>
       let mixer;
-
+      const clock = new THREE.Clock();
         function init() {
           
             scene = new THREE.Scene();
@@ -78,10 +78,13 @@
             
                 spiderman.position.set(0, 0, -5); 
                 scene.add(spiderman);
-                mixer = new THREE.AnimationMixer();
-               var action =  mixer.clipAction( gltf.animations[ 0 ] ).play();
-                // mixer.update(0.2);
-
+                // Setup animation mixer
+                mixer = new THREE.AnimationMixer(spiderman);
+                const action = mixer.clipAction(gltf.animations[0]);
+                action.setLoop(THREE.LoopOnce); // Play only once
+                action.clampWhenFinished = true; // Hold final frame
+                action.play();
+                // if(mixer) mixer.update(1.2);
                 // Swing down animation
                 // gsap.to(spiderman.position, {x:0, y: 1, duration: 2, ease: "ease.in" });
 
@@ -96,8 +99,9 @@
         function animate() {
             requestAnimationFrame(animate);
             renderer.render(scene, camera);
-
-            if(mixer) mixer.update(0.2);
+         
+            const deltaTime = clock.getDelta(); // Ensure smooth animation update
+            if (mixer) mixer.update(deltaTime); // Update animation
         }
 
         function updateScreenBounds() {
