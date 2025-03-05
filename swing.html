@@ -32,9 +32,10 @@
     </div>
 
     <script>
-    
+      let mixer;
 
         function init() {
+          
             scene = new THREE.Scene();
             scene.background = new THREE.Color(0x010101); // Dark Blue Background
 
@@ -71,10 +72,15 @@
 
                 spiderman = gltf.scene;
                 // console.log(spiderman);
-                console.log(gltf);
+                console.log(gltf.animations[0]);
+
+             
             
-                spiderman.position.set(0, 1, 0); // Start high
+                spiderman.position.set(0, 0, -5); 
                 scene.add(spiderman);
+                mixer = new THREE.AnimationMixer();
+               var action =  mixer.clipAction( gltf.animations[ 0 ] ).play();
+                // mixer.update(0.2);
 
                 // Swing down animation
                 // gsap.to(spiderman.position, {x:0, y: 1, duration: 2, ease: "ease.in" });
@@ -90,6 +96,8 @@
         function animate() {
             requestAnimationFrame(animate);
             renderer.render(scene, camera);
+
+            if(mixer) mixer.update(0.2);
         }
 
         function updateScreenBounds() {
