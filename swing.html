@@ -44,6 +44,11 @@
 
             renderer = new THREE.WebGLRenderer({ antialias: true });
             renderer.setSize(window.innerWidth, window.innerHeight);
+
+            renderer.setPixelRatio(window.devicePixelRatio);
+
+
+
             document.body.appendChild(renderer.domElement);
 
             // Lighting Adjustments for Better Visibility
@@ -63,7 +68,7 @@
             
             const textLoader = new THREE.FontLoader();
             textLoader.load('fonts/helvetiker_regular.typeface.json', function (font) {
-    const textGeometry = new THREE.TextGeometry('SPIDER MAN', {
+    const textGeometry = new THREE.TextGeometry('HARIKRISHNAN', {
         font: font,
         size: 0.5, // Increase size
         height: 0.3, // Increase thickness for depth
@@ -72,56 +77,115 @@
         bevelThickness: 0.2, // Increase bevel for better visibility
         bevelSize: 0.05,
         bevelOffset: 0,
-        bevelSegments: 5
+        bevelSegments: 6
     });
 
     // Use a more reflective material
     const textMaterial = new THREE.MeshStandardMaterial({
-        color: 0xff0000, // Red color
+        color: 0xff0022, // Red color
         metalness: 0.7,  // More reflective
         roughness: 0.2   // Less rough for a shiny look
     });
 
     const textMesh = new THREE.Mesh(textGeometry, textMaterial);
+    // textMesh.position.set(-0.5, -0.2, 1);
     textMesh.position.set(-2, -0.5, 1);
     textMesh.castShadow = true; // Enable shadows for depth
     textMesh.receiveShadow = true;
-
+    // textMesh.scale.set(0.3, 0.3, 0.3);
     scene.add(textMesh);
 });
 
 
+class CrawlPath extends THREE.Curve {
+    constructor() {
+        super();
+    }
+    getPoint(t) {
+        const x = Math.sin(t * Math.PI * 2) * 2; // Example circular path
+        const y = Math.cos(t * Math.PI * 2) * 2;
+        const z = 0;
+        return new THREE.Vector3(x, y, z);
+    }
+}
+// const path = new CrawlPath();
+// const points = path.getPoints(50);
+// const geometry = new THREE.TubeGeometry(path, 50, 0.02, 8, false);
+// const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+// const tube = new THREE.Mesh(geometry, material);
+// scene.add(tube);
 
 
-            // Load Spider-Man Model
-            const loader = new THREE.GLTFLoader();
-            loader.load("models/spiderman3.glb", function (gltf) {
-                gltf.mapping  = THREE.EquirectangularReflectionMapping;
-                scene.environment = gltf;
+// Load Spider-Man Model
+const loader = new THREE.GLTFLoader();
+loader.load("models/spiderman3.glb", function (gltf) {
+    spiderman = gltf.scene;
+    scene.add(spiderman);
+
+    spiderman.position.set(0, 0, -4); 
+
+    // Initialize Animation Mixer
+    mixer = new THREE.AnimationMixer(spiderman);
+
+    // Retrieve animations by name
+    const swingAction = mixer.clipAction(gltf.animations[0]);
+    const crawlAction = mixer.clipAction(gltf.animations[1]);
+
+    // Set loop modes
+    swingAction.setLoop(THREE.LoopOnce);
+    crawlAction.setLoop(THREE.LoopRepeat);
+
+    // Ensure animations hold their final frame
+    swingAction.clampWhenFinished = true;
+    crawlAction.clampWhenFinished = true;
+
+
+    console.log(spiderman.position);
+    console.log(spiderman.rotation);
+
+    // Play the swing animation
+    swingAction.play();
+
+    
+    // crawlAction.play();
+    // console.log(spiderman.position);
+    // console.log(spiderman.rotation);
+    // startCrawlAnimation();
 
 
 
-                spiderman = gltf.scene;
-                // console.log(spiderman);
-                console.log(gltf.animations[0]);
+    // spiderman.position.x = 0;
+    // spiderman.position.y = 0.1;
 
-             
-                
-                spiderman.position.set(0, 0, -4); 
-                scene.add(spiderman);
-                // Setup animation mixer
-                mixer = new THREE.AnimationMixer(spiderman);
-                const action = mixer.clipAction(gltf.animations[0]);
-                action.setLoop(THREE.LoopOnce); // Play only once
-                action.clampWhenFinished = true; // Hold final frame
-                action.play();
-                // if(mixer) mixer.update(1.2);
-                // Swing down animation
-                // gsap.to(spiderman.position, {x:0, y: 1, duration: 2, ease: "ease.in" });
 
-                updateScreenBounds();
-              
-            });
+    
+    // Start crawling animation
+    
+    
+    // startCrawlAnimation();
+    // upDownAnimation();
+    
+    // gsap.to(spiderman.position, {x: 5.5,duration: 8, ease: "ease.out" });
+    
+    // // Listen for the end of the swing animation to start the crawl
+    mixer.addEventListener('finished', function (e) {
+    if (e.action === swingAction) {
+        // Stop and reset swing action
+        console.log(spiderman.position);
+        console.log(spiderman.rotation);
+        swingAction.stop();
+
+        // spiderman.position.set(0, 0, -4);
+        spiderman.rotation.set(0.006, 0, 0); // Reset rotation if needed
+
+        // Wait 3 seconds before starting crawl animation
+        setTimeout(() => {
+            crawlAction.reset().play(); // Reset before playing
+            startCrawlAnimation();
+        }, 3000);
+    }
+});
+});
 
 
 
@@ -130,10 +194,138 @@
             animate();
         }
 
+       // Crawl animation sequence
+function startCrawlAnimation() {
+    // console.log(spiderman.rotation);
+    // console.log(spiderman.position);
+    gsap.to(spiderman.position, {
+        y: 0.1,
+        x: 6,  // Move across the text (adjust based on text width)
+        duration: 8,
+        ease: "power1.inOut",
+        onComplete: () => {
+            dropDownAnimation(); // Call drop-down animation after crawling
+        }
+    });
+    gsap.to(spiderman.rotation, {
+        x: -1.0,
+        y: 1.5,
+        z: 1.1, // Move across the text (adjust based on text width)
+        duration: 1,
+        ease: "power1.inOut",
+        onComplete: () => {
+            // dropDownAnimation(); // Call drop-down animation after crawling
+        }
+    });
+}
+function reverseCrawlAnimation() {
+    gsap.to(spiderman.position, {
+        x: -3.5,  // Move across the text (adjust based on text width)
+        duration: 7,
+        ease: "power1.inOut",
+        onComplete: () => {
+            upDownAnimation(); // Call drop-down animation after crawling
+        }
+    });
+}
+
+// Drop down animation
+function dropDownAnimation() {
+    // gsap.to(spiderman.rotation, {
+    //     x: 1  ,
+    //     y:-1,
+    //       // Move down below the text
+    //     duration: 1,
+    //     ease: "power1.in",
+    //     onComplete: () => {
+    //         // climbUpAnimation(); // Call climb-up animation after dropping
+    //     }
+    // });
+    gsap.to(spiderman.position, {
+        y: -1.3,
+          // Move down below the text
+        duration: 1,
+        ease: "power1.in",
+        onComplete: () => {
+            // climbUpAnimation(); // Call climb-up animation after dropping
+        }
+    });
+    gsap.to(spiderman.rotation, {
+        x: -4.5,
+        y: -1.5,
+        z: -1.2,
+          // Move down below the text
+        duration: 0.8,
+        ease: "power1.in",
+        onComplete: () => {
+            reverseCrawlAnimation(); // Call climb-up animation after dropping
+        }
+    });
+}
+
+// UP down animation
+function upDownAnimation() {
+    // gsap.to(spiderman.rotation, {
+    //     x: 1  ,
+    //     y:-1,
+    //       // Move down below the text
+    //     duration: 1,
+    //     ease: "power1.in",
+    //     onComplete: () => {
+    //         // climbUpAnimation(); // Call climb-up animation after dropping
+    //     }
+    // });
+    gsap.to(spiderman.position, {
+        y: 0.1,
+          // Move down below the text
+        duration: 1,
+        ease: "power1.in",
+        onComplete: () => {
+            // climbUpAnimation(); // Call climb-up animation after dropping
+        }
+    });
+    gsap.to(spiderman.rotation, {
+        x: -1.0,
+        y: 1.5,
+        z: 1.1,
+          // Move down below the text
+        duration: 1,
+        ease: "power1.in",
+        onComplete: () => {
+            startCrawlAnimation(); // Call climb-up animation after dropping
+        }
+    });
+}
+
+        // Climb back up animation
+        function climbUpAnimation() {
+            // gsap.to(spiderman.rotation, {
+            //     z: 1,  // Move back up to text level
+            //     duration: 2,
+            //     ease: "power1.out",
+            //     // onComplete: () => {
+            //     //     startCrawlAnimation(); // Loop the animation
+            //     // }
+            // });
+            gsap.to(spiderman.position, {
+                x: -1,  // Move back up to text level
+                y: 0,  // Move back up to text level
+                z: -3,  // Move back up to text level
+                duration: 8,
+                ease: "power1.out",
+                onComplete: () => {
+                    startCrawlAnimation(); // Loop the animation
+                }
+            });
+        }
+
+
+
+
         function animate() {
             requestAnimationFrame(animate);
             renderer.render(scene, camera);
-         
+            
             const deltaTime = clock.getDelta(); // Ensure smooth animation update
             if (mixer) mixer.update(deltaTime); // Update animation
         }
