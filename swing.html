@@ -97,23 +97,7 @@
 });
 
 
-class CrawlPath extends THREE.Curve {
-    constructor() {
-        super();
-    }
-    getPoint(t) {
-        const x = Math.sin(t * Math.PI * 2) * 2; // Example circular path
-        const y = Math.cos(t * Math.PI * 2) * 2;
-        const z = 0;
-        return new THREE.Vector3(x, y, z);
-    }
-}
-// const path = new CrawlPath();
-// const points = path.getPoints(50);
-// const geometry = new THREE.TubeGeometry(path, 50, 0.02, 8, false);
-// const material = new THREE.MeshBasicMaterial({ color: 0xff0000 });
-// const tube = new THREE.Mesh(geometry, material);
-// scene.add(tube);
+
 
 
 // Load Spider-Man Model
@@ -142,32 +126,11 @@ loader.load("models/spiderman3.glb", function (gltf) {
     crawlAction.clampWhenFinished = true;
 
 
-    console.log(spiderman.position);
-    console.log(spiderman.rotation);
 
     // Play the swing animation
     swingAction.play();
 
     
-    // crawlAction.play();
-    // console.log(spiderman.position);
-    // console.log(spiderman.rotation);
-    // startCrawlAnimation();
-
-
-
-    // spiderman.position.x = 0;
-    // spiderman.position.y = 0.1;
-
-
-    
-    // Start crawling animation
-    
-    
-    // startCrawlAnimation();
-    // upDownAnimation();
-    
-    // gsap.to(spiderman.position, {x: 5.5,duration: 8, ease: "ease.out" });
     
     // // Listen for the end of the swing animation to start the crawl
     mixer.addEventListener('finished', function (e) {
@@ -179,16 +142,11 @@ loader.load("models/spiderman3.glb", function (gltf) {
         swingAction.crossFadeTo(crawlAction, 0.5, true);
 
 
-
-
-        // spiderman.position.set(0, 0, -4);
-        // spiderman.rotation.set(0, 0, 0); // Reset rotation if needed
-
         // Wait 3 seconds before starting crawl animation
         setTimeout(() => {
          crawlAction.reset().play(); // Reset before playing
            startCrawlAnimation();
-        }, 1);
+        }, 3000);
     }
 });
 });
@@ -202,8 +160,7 @@ loader.load("models/spiderman3.glb", function (gltf) {
 
        // Crawl animation sequence
 function startCrawlAnimation() {
-    // console.log(spiderman.rotation);
-    // console.log(spiderman.position);
+    
     gsap.to(spiderman.position, {
         y: 0.1,
         x: 3,  // Move across the text (adjust based on text width)
